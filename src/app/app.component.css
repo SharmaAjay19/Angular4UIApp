@@ -1,0 +1,40 @@
+.overlay-content {
+    vertical-align: center;
+    width: 100%;
+    height: 100%;
+}
+
+.overlay {
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    z-index: 11111;
+    top: 0;
+    left: 0;
+    background-color: rgba(6, 6, 6, 0.8);
+    overflow-x: hidden;
+    transition: 0.5s;
+    display: block;
+}
+
+.cssload-container {
+    width: 100%;
+    height: 100px;
+    text-align: center;
+    position: relative;
+    margin-top: -55%;
+  }
+
+  .cssload-double-torus {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+    border: 8px double;
+    border-radius: 50%;
+    border-color: rgb(2,116,216) rgba(255, 255, 255, 01) rgb(2,116,216);
+    animation: cssload-spin 1320ms infinite linear;
+    -o-animation: cssload-spin 1320ms infinite linear;
+    -ms-animation: cssload-spin 1320ms infinite linear;
+    -webkit-animation: cssload-spin 1287ms infinite linear;
+    -moz-animation: cssload-spin 1320ms infinite linear;
+  }

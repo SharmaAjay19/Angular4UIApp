@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import {CommonDataService} from './services/commonData.service';
 
 @Component({
   selector: 'app-root',
@@ -6,5 +7,10 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'app';
+	constructor(private commonDataService: CommonDataService){
+		this.commonDataService.showLoaderEvent.subscribe(showFlag => {
+			this.showLoader = showFlag;
+		});
+	}
+	showLoader: boolean;
 }

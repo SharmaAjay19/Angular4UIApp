@@ -1,18 +1,31 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-
+import { HttpModule } from '@angular/http';
+import {APP_BASE_HREF} from '@angular/common';
+import {AppRoutingModule} from './app-routing.module';
 
 import { AppComponent } from './app.component';
+import { CommonDataService } from './services/commonData.service';
+import {HomeComponent} from './components/home/home.component';
+import {LoginComponent} from './components/login/login.component';
+import {AdminComponent} from './components/admin/admin.component';
+import {ErrorComponent} from './components/error/error.component';
 
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    HomeComponent,
+    LoginComponent,
+    AdminComponent,
+    ErrorComponent
   ],
   imports: [
-    BrowserModule
+    BrowserModule,
+    HttpModule,
+    AppRoutingModule
   ],
-  providers: [],
+  providers: [CommonDataService, { provide: APP_BASE_HREF, useValue: '/' }],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

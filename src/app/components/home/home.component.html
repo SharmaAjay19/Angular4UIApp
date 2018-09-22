@@ -1,0 +1,27 @@
+<title>{{title}}</title>
+<nav class="navbar navbar-expand-sm navbar-dark bg-dark">
+
+  <!-- Links -->
+  <ul class="navbar-nav">
+    <li class="nav-item">
+      <a class="nav-link" href="#">Profile</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#">Content</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#">Admin</a>
+    </li>
+  </ul>
+
+</nav>
+<div>
+	<table>
+		<tr>
+			<th *ngFor="let col of commonDataService.userData.columns">{{col.name}}</th>
+		</tr>
+		<tr *ngFor="let row of commonDataService.userData.rows">
+			<td *ngFor="let col of commonDataService.userData.columns">{{row[col.name]}}</td>
+		</tr>
+	</table>
+</div>
