@@ -1,14 +1,11 @@
 import os
+import json
 import ftplib
 
 firstDeployment = False
 source = "dist"
 destination = "site/wwwroot/"
-config = {
-	"endpoint" : "waws-prod-sn1-089.ftp.azurewebsites.windows.net",
-	"username" : "angular4uiapp\\$angular4uiapp",
-	"password" : "8eY15plaAdM6n5mvmwWdDDJZ2KKDscM0XjkCvSafHrzYAbuu7zCBdcvZvRnK"
-}
+config = json.load(open("appcredentials.json", "r"))
 
 session = ftplib.FTP(config["endpoint"], config["username"], config["password"])
 if firstDeployment:
