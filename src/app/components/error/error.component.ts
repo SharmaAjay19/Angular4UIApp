@@ -8,7 +8,7 @@ import {CommonDataService} from '../../services/commonData.service';
 })
 export class ErrorComponent {
 
-	constructor(private commonDataService: CommonDataService){
+	constructor(public commonDataService: CommonDataService){
 
 	}
 	title = 'Error';

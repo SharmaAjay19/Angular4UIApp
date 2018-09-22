@@ -9,8 +9,8 @@ import { Router} from '@angular/router';
 })
 export class LoginComponent {
 
-	constructor(private commonDataService: CommonDataService,
-		private router: Router){
+	constructor(public commonDataService: CommonDataService,
+		public router: Router){
 
 	}
 	title = 'Login';

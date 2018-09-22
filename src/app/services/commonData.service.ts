@@ -56,7 +56,7 @@ export class CommonDataService {
 		});
 	}
 
-	buildHeaders(){
+	public buildHeaders(){
 		var serviceHeaders = new Headers();
 		serviceHeaders.append("Content-Type", "application/json");
 		return new RequestOptions({ headers: serviceHeaders });
