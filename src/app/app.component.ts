@@ -13,8 +13,4 @@ export class AppComponent {
 		});
 	}
 	showLoader: boolean;
-
-	ngOnInit(){
-		document.getElementById("registerpagelink").click();
-	}
 }
