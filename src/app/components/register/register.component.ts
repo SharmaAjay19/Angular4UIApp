@@ -8,13 +8,36 @@ import { Router} from '@angular/router';
   styleUrls: ['./register.component.css']
 })
 export class RegisterComponent {
-
+	registerForm: any = {
+		username: "",
+		password: ""
+	};
+	errorMessage: string = "";
 	constructor(public commonDataService: CommonDataService,
 		public router: Router){
+		this.commonDataService.userRegisterSuccessEvent.subscribe(res => {
+			if (res.status){
+				document.getElementById("loginpagelink").click();
+			}
+			else{
+				this.errorMessage = "Username is taken";
+			}
+		});
 
 	}
 	title = 'Register';
 	ngOnInit(){
-		console.log("Register Component");
+	}
+
+	userRegister(){
+		this.commonDataService.registerUser(this.registerForm);
+	}
+
+	resetForm(){
+		this.registerForm = {
+			username: "",
+			password: ""
+		};
+		this.errorMessage = "";
 	}
 }

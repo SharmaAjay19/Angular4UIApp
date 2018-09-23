@@ -8,17 +8,34 @@ import { Router} from '@angular/router';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
-
+	loginForm: any = {
+		username: "",
+		password: ""
+	};
+	errorMessage: string = "";
 	constructor(public commonDataService: CommonDataService,
 		public router: Router){
-
+		this.commonDataService.userLoginSuccessEvent.subscribe(res => {
+			if (res.status){
+				document.getElementById("homepagelink").click();
+			}
+			else{
+				if (res.msg.status===400){
+					this.errorMessage = "Invalid password";
+				}
+				else{
+					this.errorMessage = "User does not exist";
+				}
+			}
+		});
 	}
 	title = 'Login';
 	loggedIn: boolean = true;
 	ngOnInit(){
-		console.log("HEllo Login Component");
-		if (this.loggedIn){
-			this.router.navigate["/Home"];
-		}
+	}
+
+	userLogin(){
+		console.log(this.loginForm);
+		this.commonDataService.loginUser(this.loginForm);
 	}
 }

@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { HttpModule } from '@angular/http';
 import {APP_BASE_HREF} from '@angular/common';
 import {AppRoutingModule} from './app-routing.module';
+import { FormsModule } from '@angular/forms';
 
 import { AppComponent } from './app.component';
 import { CommonDataService } from './services/commonData.service';
@@ -25,6 +26,7 @@ import {RegisterComponent} from './components/register/register.component';
   imports: [
     BrowserModule,
     HttpModule,
+    FormsModule,
     AppRoutingModule
   ],
   providers: [CommonDataService, { provide: APP_BASE_HREF, useValue: '/' }],
