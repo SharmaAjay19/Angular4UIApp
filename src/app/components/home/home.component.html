@@ -1,10 +1,11 @@
+<button type="button" id="openPopupButton" class="btn btn-info btn-lg" data-toggle="modal" hidden data-target="#saveAreaModal">Open Popup</button>
 <div class="modal fade" id="saveAreaModal" role="dialog">
     <div class="modal-dialog">
       <!-- Modal content-->
       <div class="modal-content">
         <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
           <h4 style="color:red;"><span class="glyphicon glyphicon-lock"></span>Save Area</h4>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
         </div>
         <div class="modal-body">
           <div class="form-group">
@@ -36,6 +37,9 @@
 
 </nav>
 <div>
+  <div *ngIf="selectedArea" style="display:block;width:100%">
+    <p style="align-content: center">{{selectedArea?.areaName}}</p>
+  </div>
   <div style="display:inline;width:80%" #gmap style="height:550px">  
   </div>
 </div>

@@ -4,7 +4,6 @@ import {ISubscription} from 'rxjs/Subscription';
 import { } from '@types/googlemaps';
 import { v4 as uuid } from 'uuid';
 
-declare var $: any;
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -19,8 +18,10 @@ export class HomeComponent {
 	marker: google.maps.Marker;
 	drawingManager: google.maps.drawing.DrawingManager;
 	currentDrawingOverlay: any;
+	areaOfOverlay: number = 0;
 	polygon: any[] = [];
 	renderedPolygons: any[] = [];
+	selectedArea: any;
 	newAreaCreation: boolean = false;
 	constructor(public commonDataService: CommonDataService){
 		this.allSubscriptions.push(this.commonDataService.dataFetchSuccessEvent.subscribe(res => {
@@ -89,6 +90,7 @@ export class HomeComponent {
       	if (event.type === google.maps.drawing.OverlayType.POLYGON) {
       		this.currentDrawingOverlay = event.overlay;
       		this.polygon = event.overlay.getPath().getArray();
+      		this.areaOfOverlay = this.getArea(this.currentDrawingOverlay);
       		this.showSaveAreaBox();
         	//this is the coordinate, you can assign it to a variable or pass into another function.
         	//alert("The area is ready to be saved");
@@ -97,7 +99,7 @@ export class HomeComponent {
   	}
 
   	showSaveAreaBox(){
-  		$('#saveAreaModal').modal('show');
+  		document.getElementById("openPopupButton").click();
   	}
 
   	saveArea(){
@@ -122,6 +124,10 @@ export class HomeComponent {
   				bounds.extend(pos);
   			})
   			polygon.setPath(path);
+  			google.maps.event.addListener(polygon, 'click', () => {
+  				this.selectedArea = area;
+  				console.log(this.selectedArea);
+			});
   			this.renderedPolygons.push(polygon);
   		});
   		this.map.fitBounds(bounds);
@@ -140,7 +146,7 @@ export class HomeComponent {
   		this.drawPolygon();
   	}
 
-  	//Not in use code
+  	//Extra functions
   	placeMarker(location){
   		//let location = new google.maps.LatLng(event.latLng.lat(), event.latLng.lng());
   		var marker = new google.maps.Marker({
@@ -149,4 +155,25 @@ export class HomeComponent {
   			title: 'wow'
   		});
   	}
+
+  	getArea(givenPolygon){
+  		return Math.round(google.maps.geometry.spherical.computeArea(givenPolygon.getPath()));
+  	}
+
+  	distance(lat1, lon1, lat2, lon2, unit) {
+		var radlat1 = Math.PI * lat1/180;
+		var radlat2 = Math.PI * lat2/180;
+		var theta = lon1-lon2;
+		var radtheta = Math.PI * theta/180;
+		var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+		if (dist > 1) {
+			dist = 1;
+		}
+		dist = Math.acos(dist);
+		dist = dist * 180/Math.PI;
+		dist = dist * 60 * 1.1515;
+		if (unit=="K") { dist = dist * 1.609344; }
+		if (unit=="N") { dist = dist * 0.8684; }
+		return dist;
+	}
 }
