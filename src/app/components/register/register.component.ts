@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import {CommonDataService} from '../../services/commonData.service';
 import { Router} from '@angular/router';
+import {ISubscription} from 'rxjs/Subscription';
 
 @Component({
   selector: 'app-register',
@@ -8,6 +9,7 @@ import { Router} from '@angular/router';
   styleUrls: ['./register.component.css']
 })
 export class RegisterComponent {
+	allSubscriptions: ISubscription[] = [];
 	registerForm: any = {
 		username: "",
 		password: ""
@@ -15,14 +17,14 @@ export class RegisterComponent {
 	errorMessage: string = "";
 	constructor(public commonDataService: CommonDataService,
 		public router: Router){
-		this.commonDataService.userRegisterSuccessEvent.subscribe(res => {
+		this.allSubscriptions.push(this.commonDataService.userRegisterSuccessEvent.subscribe(res => {
 			if (res.status){
 				document.getElementById("loginpagelink").click();
 			}
 			else{
 				this.errorMessage = "Username is taken";
 			}
-		});
+		}));
 
 	}
 	title = 'Register';
@@ -39,5 +41,12 @@ export class RegisterComponent {
 			password: ""
 		};
 		this.errorMessage = "";
+	}
+
+	ngOnDestroy(){
+		this.allSubscriptions.forEach(subscription => {
+			subscription.unsubscribe();
+		});
+		this.allSubscriptions = [];
 	}
 }

@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import {CommonDataService} from '../../services/commonData.service';
+import {ISubscription} from 'rxjs/Subscription';
 
 @Component({
   selector: 'app-error',
@@ -7,6 +8,7 @@ import {CommonDataService} from '../../services/commonData.service';
   styleUrls: ['./error.component.css']
 })
 export class ErrorComponent {
+	allSubscriptions: ISubscription[] = [];
 
 	constructor(public commonDataService: CommonDataService){
 
@@ -14,5 +16,12 @@ export class ErrorComponent {
 	title = 'Error';
 	
 	ngOnInit(){
+	}
+
+	ngOnDestroy(){
+		this.allSubscriptions.forEach(subscription => {
+			subscription.unsubscribe();
+		});
+		this.allSubscriptions = [];
 	}
 }

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import {CommonDataService} from '../../services/commonData.service';
 import { Router} from '@angular/router';
+import {ISubscription} from 'rxjs/Subscription';
 
 @Component({
   selector: 'app-login',
@@ -8,6 +9,7 @@ import { Router} from '@angular/router';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
+	allSubscriptions: ISubscription[] = [];
 	loginForm: any = {
 		username: "",
 		password: ""
@@ -15,7 +17,7 @@ export class LoginComponent {
 	errorMessage: string = "";
 	constructor(public commonDataService: CommonDataService,
 		public router: Router){
-		this.commonDataService.userLoginSuccessEvent.subscribe(res => {
+		this.allSubscriptions.push(this.commonDataService.userLoginSuccessEvent.subscribe(res => {
 			if (res.status){
 				document.getElementById("homepagelink").click();
 			}
@@ -27,7 +29,7 @@ export class LoginComponent {
 					this.errorMessage = "User does not exist";
 				}
 			}
-		});
+		}));
 	}
 	title = 'Login';
 	loggedIn: boolean = true;
@@ -37,5 +39,12 @@ export class LoginComponent {
 	userLogin(){
 		console.log(this.loginForm);
 		this.commonDataService.loginUser(this.loginForm);
+	}
+
+	ngOnDestroy(){
+		this.allSubscriptions.forEach(subscription => {
+			subscription.unsubscribe();
+		});
+		this.allSubscriptions = [];
 	}
 }

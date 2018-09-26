@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import {CommonDataService} from './services/commonData.service';
+import {ISubscription} from 'rxjs/Subscription';
 
 @Component({
   selector: 'app-root',
@@ -7,10 +8,18 @@ import {CommonDataService} from './services/commonData.service';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
+	allSubscriptions: ISubscription[] = [];
 	constructor(private commonDataService: CommonDataService){
-		this.commonDataService.showLoaderEvent.subscribe(showFlag => {
+		this.allSubscriptions.push(this.commonDataService.showLoaderEvent.subscribe(showFlag => {
 			this.showLoader = showFlag;
-		});
+		}));
 	}
 	showLoader: boolean;
+
+	ngOnDestroy(){
+		this.allSubscriptions.forEach(subscription => {
+			subscription.unsubscribe();
+		});
+		this.allSubscriptions = [];
+	}
 }
