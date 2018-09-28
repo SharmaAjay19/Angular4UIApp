@@ -104,11 +104,12 @@ export class HomeComponent {
 
   	saveArea(){
   		if (this.polygon.length>2 && this.areaName.length>0){
+  			this.polygon.push(this.polygon[0]);
   			var data = {
   				username: this.commonDataService.userProfile.rowKey,
   				id: uuid(),
   				areaName: this.areaName,
-  				polygon: JSON.stringify(this.polygon)
+  				polygon: "POLYGON((" + this.polygon.map(x => x.lat() + " " + x.lng()).join(",") + "))"
   			};
   			this.commonDataService.addUserData(data);
   		}
@@ -119,10 +120,14 @@ export class HomeComponent {
   		this.commonDataService.userData.forEach(area => {
   			var polygon = new google.maps.Polygon();
   			polygon.setMap(this.map);
-  			var path = JSON.parse(area.polygon);
+  			var startInd = "POLYGON ((".length;
+  			var endInd = area.polygon.indexOf("))");
+  			console.log(area.polygon.substr(startInd, endInd-1).split(", ").slice(0, -1));
+  			var path = area.polygon.substr(startInd, endInd-1).split(", ").slice(0, -1).map(x => new Object({lat: parseFloat(x.split(" ")[0]), lng: parseFloat(x.split(" ")[1])}));
+  			console.log(path);
   			path.forEach(pos => {
   				bounds.extend(pos);
-  			})
+  			});
   			polygon.setPath(path);
   			google.maps.event.addListener(polygon, 'click', () => {
   				this.selectedArea = area;

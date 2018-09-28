@@ -16,9 +16,11 @@ export class CommonDataService {
 	public constructor(public _http: Http){
 		this.serviceUrls = {
 			LoginUserUrl: "https://backendapi4demo.azurewebsites.net/UserLogin",
-			FetchUserDataUrl: "https://backendapi4demo.azurewebsites.net/FetchUserData",
 			UserRegisterUrl: "https://backendapi4demo.azurewebsites.net/UserRegister",
-			AddUserDataUrl: "https://backendapi4demo.azurewebsites.net/AddUserData"
+			//AddUserDataUrl: "https://backendapi4demo.azurewebsites.net/AddUserData",
+			//FetchUserDataUrl: "https://backendapi4demo.azurewebsites.net/FetchUserData"
+			AddUserDataUrl: "https://backendapi4demo.azurewebsites.net/AddUserDataSql",
+			FetchUserDataUrl: "https://backendapi4demo.azurewebsites.net/FetchUserDataSql"
 		};
 	}
 
@@ -74,7 +76,7 @@ export class CommonDataService {
 		var url = this.serviceUrls.AddUserDataUrl;
 		this._http.post(url, data, this.buildHeaders()).subscribe((res: Response) => {
 			this.showLoaderEvent.emit(false);
-			this.userData.push(res.json());
+			this.userData.push(data);
 			this.dataSaveSuccessEvent.emit({status: true});
 		},
 		(err) => {
