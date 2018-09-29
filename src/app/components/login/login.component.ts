@@ -37,7 +37,6 @@ export class LoginComponent {
 	}
 
 	userLogin(){
-		console.log(this.loginForm);
 		this.commonDataService.loginUser(this.loginForm);
 	}
 

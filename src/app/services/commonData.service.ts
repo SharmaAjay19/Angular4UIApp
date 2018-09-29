@@ -5,12 +5,14 @@ import { Http, Headers, RequestOptions, Response } from '@angular/http';
 export class CommonDataService {
 	public userProfile: any;
 	public userData: any[] = [];
+	public rangeQueryData: any[] = [];
 	public isUserAdmin: boolean = false;
 	public serviceUrls: any;
 	public userLoginSuccessEvent: EventEmitter<any> = new EventEmitter();
 	public dataFetchSuccessEvent: EventEmitter<any> = new EventEmitter();
 	public dataSaveSuccessEvent: EventEmitter<any> = new EventEmitter();
 	public userRegisterSuccessEvent: EventEmitter<any> = new EventEmitter();
+	public rangeQuerySuccessEvent: EventEmitter<any> = new EventEmitter();
 	public showLoaderEvent: EventEmitter<boolean> = new EventEmitter();
 	
 	public constructor(public _http: Http){
@@ -20,8 +22,38 @@ export class CommonDataService {
 			//AddUserDataUrl: "https://backendapi4demo.azurewebsites.net/AddUserData",
 			//FetchUserDataUrl: "https://backendapi4demo.azurewebsites.net/FetchUserData"
 			AddUserDataUrl: "https://backendapi4demo.azurewebsites.net/AddUserDataSql",
-			FetchUserDataUrl: "https://backendapi4demo.azurewebsites.net/FetchUserDataSql"
+			FetchUserDataUrl: "https://backendapi4demo.azurewebsites.net/FetchUserDataSql",
+			RangeQueryUrl: "https://backendapi4demo.azurewebsites.net/RangeQuerySql",
+			DeleteAreaUrl: "https://backendapi4demo.azurewebsites.net/DeleteUserDataSql"
 		};
+	}
+
+	public rangeQuery(body){
+		this.showLoaderEvent.emit(true);
+		var url = this.serviceUrls.RangeQueryUrl;
+		this._http.post(url, body, this.buildHeaders()).subscribe((res: Response) => {
+			this.showLoaderEvent.emit(false);
+			this.rangeQueryData = res.json();
+			this.rangeQuerySuccessEvent.emit({status: true});
+		},
+		(err) => {
+			this.rangeQueryData = [];
+			this.showLoaderEvent.emit(false);
+			this.rangeQuerySuccessEvent.emit({status: false, msg: err});
+		});
+	}
+
+	public deleteUserData(id){
+		this.showLoaderEvent.emit(true);
+		var url = this.serviceUrls.DeleteAreaUrl + "/" + id;
+		this._http.get(url, this.buildHeaders()).subscribe((res: Response) => {
+			this.showLoaderEvent.emit(false);
+			var idx = this.userData.findIndex(x => x.id === id);
+			this.userData.splice(idx, 1);
+		},
+		(err) => {
+			this.showLoaderEvent.emit(false);
+		});
 	}
 
 	public registerUser(body){
@@ -59,7 +91,6 @@ export class CommonDataService {
 		var url = this.serviceUrls.FetchUserDataUrl + "/" + this.userProfile.rowKey;
 		this._http.get(url, this.buildHeaders()).subscribe((res: Response) => {
 			this.showLoaderEvent.emit(false);
-			console.log(res.json());
 			this.userData = res.json();
 			this.dataFetchSuccessEvent.emit({status: true});
 		},

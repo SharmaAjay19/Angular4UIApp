@@ -13,6 +13,7 @@ export class HomeComponent {
 	@ViewChild('gmap') gmapElement: any;
 	map: google.maps.Map;
 	objectKeys = Object.keys;
+	userLocation: any = null;
 	allSubscriptions: ISubscription[] = [];
 	areaName: string = "";
 	marker: google.maps.Marker;
@@ -21,8 +22,9 @@ export class HomeComponent {
 	areaOfOverlay: number = 0;
 	polygon: any[] = [];
 	renderedPolygons: any[] = [];
-	selectedArea: any;
+	selectedAreas: any[] = [];
 	newAreaCreation: boolean = false;
+	userOrMarketMode: boolean = true;
 	constructor(public commonDataService: CommonDataService){
 		this.allSubscriptions.push(this.commonDataService.dataFetchSuccessEvent.subscribe(res => {
 			if (res.status){
@@ -64,10 +66,12 @@ export class HomeComponent {
 	findMe() {
     	if (navigator.geolocation) {
       		navigator.geolocation.getCurrentPosition((position) => {
-        	this.showPosition(position);
-      	});
-    	} 	else {
-      	alert("Geolocation is not supported by this browser.");
+      			this.userLocation = position;
+        		this.showPosition(position);
+      		});
+    	}
+    	else {
+      		alert("Geolocation is not supported by this browser.");
     	}
   	}
 
@@ -115,34 +119,79 @@ export class HomeComponent {
   		}
   	}
 
+  	renderMarketAreas(){
+  		if (this.userLocation){
+  			this.userOrMarketMode = false;
+  			var centre = 'POINT(' + this.userLocation.coords.latitude + " " + this.userLocation.coords.longitude + ')';
+  			var radius = 10000000;
+  			this.commonDataService.rangeQuery({centre: centre, radius: radius});
+  			this.allSubscriptions.push(this.commonDataService.rangeQuerySuccessEvent.subscribe(res => {
+  				if (res.status){
+  					console.log(this.commonDataService.userProfile);
+  					this.renderAreas(this.commonDataService.rangeQueryData.filter(x => x.username !== this.commonDataService.userProfile.rowKey));
+  				}
+  			}));
+  		} 
+  	}
+
   	renderUserAreas(){
+  		this.userOrMarketMode = true;
+  		this.renderAreas(this.commonDataService.userData);
+  	}
+
+  	renderAreas(data){
+  		this.clearAllPolygons();
   		var bounds = new google.maps.LatLngBounds();
-  		this.commonDataService.userData.forEach(area => {
+  		data.forEach(area => {
   			var polygon = new google.maps.Polygon();
   			polygon.setMap(this.map);
   			var startInd = "POLYGON ((".length;
   			var endInd = area.polygon.indexOf("))");
-  			console.log(area.polygon.substr(startInd, endInd-1).split(", ").slice(0, -1));
   			var path = area.polygon.substr(startInd, endInd-1).split(", ").slice(0, -1).map(x => new Object({lat: parseFloat(x.split(" ")[0]), lng: parseFloat(x.split(" ")[1])}));
-  			console.log(path);
   			path.forEach(pos => {
   				bounds.extend(pos);
   			});
   			polygon.setPath(path);
   			google.maps.event.addListener(polygon, 'click', () => {
-  				this.selectedArea = area;
-  				console.log(this.selectedArea);
+	  			if (this.userOrMarketMode){
+	  				var idx = this.selectedAreas.findIndex(x => x.id === area.id);
+	  				if (idx>=0){
+	  					polygon.setOptions({strokeWeight: 2.0, fillColor: 'black'});
+	  					this.selectedAreas.splice(idx, 1);
+	  				}
+	  				else{
+	  					polygon.setOptions({strokeWeight: 2.0, fillColor: 'green'});
+	  					this.selectedAreas.push(area);
+	  				}
+	  			}
 			});
-  			this.renderedPolygons.push(polygon);
+  			this.renderedPolygons.push({polygon:polygon, id:area.id});
   		});
   		this.map.fitBounds(bounds);
   	}
 
   	clearAllPolygons(){
   		this.renderedPolygons.forEach(polyg => {
-  			polyg.setMap(null);
+  			polyg.polygon.setMap(null);
   		});
+  		this.selectedAreas = [];
   		this.renderedPolygons = [];
+  	}
+
+  	clearPolygon(id){
+  		var idx = this.renderedPolygons.findIndex(polyg => polyg.id===id);
+  		if (idx>=0){
+  			this.renderedPolygons[idx].polygon.setMap(null);
+  			this.renderedPolygons.splice(idx, 1);
+  		}
+  	}
+
+  	deleteSelectedAreas(){
+  		this.selectedAreas.forEach(area => {
+  			this.commonDataService.deleteUserData(area.id);
+  			this.clearPolygon(area.id);
+  		});
+  		this.selectedAreas = [];
   	}
 
   	enableNewAreaCreation(){
