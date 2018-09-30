@@ -14,6 +14,7 @@ export class HomeComponent {
 	map: google.maps.Map;
 	objectKeys = Object.keys;
 	userLocation: any = null;
+	userLocationMarker: google.maps.Marker;
 	allSubscriptions: ISubscription[] = [];
 	areaName: string = "";
 	marker: google.maps.Marker;
@@ -25,17 +26,22 @@ export class HomeComponent {
 	selectedAreas: any[] = [];
 	newAreaCreation: boolean = false;
 	userOrMarketMode: boolean = true;
+	selectedMarketArea: any;
+	selectedMarketPolygon: any;
 	constructor(public commonDataService: CommonDataService){
 		this.allSubscriptions.push(this.commonDataService.dataFetchSuccessEvent.subscribe(res => {
 			if (res.status){
 				setTimeout(() => {
-				var mapProp = {
-      				center: new google.maps.LatLng(18.5793, 73.8143),
-      				zoom: 15
-    			};
-    			this.map = new google.maps.Map(this.gmapElement.nativeElement, mapProp);
-    			this.findMe();}, 1000);
-			
+					var mapProp = {
+	      				center: new google.maps.LatLng(18.5793, 73.8143),
+	      				zoom: 15
+	    			};
+	    			this.map = new google.maps.Map(this.gmapElement.nativeElement, mapProp);
+	    			this.findMe();
+    			}, 1000);
+				setTimeout(() => {
+					this.placeMarker({lat: this.userLocation.coords.latitude, lng: this.userLocation.coords.longitude});
+				}, 1500);
 			}
 		}));
 	}
@@ -73,6 +79,88 @@ export class HomeComponent {
     	else {
       		alert("Geolocation is not supported by this browser.");
     	}
+  	}
+
+  	renderMarketAreas(){
+  		if (this.userLocation){
+  			this.userOrMarketMode = false;
+  			var centre = 'POINT(' + this.userLocation.coords.latitude + " " + this.userLocation.coords.longitude + ')';
+  			var radius = 10000000;
+  			this.commonDataService.rangeQuery({centre: centre, radius: radius});
+  			this.allSubscriptions.push(this.commonDataService.rangeQuerySuccessEvent.subscribe(res => {
+  				if (res.status){
+  					this.renderAreas(this.commonDataService.rangeQueryData.filter(x => x.username !== this.commonDataService.userProfile.rowKey));
+  				}
+  			}));
+  		} 
+  	}
+
+  	renderUserAreas(){
+	  	if (!this.userOrMarketMode){
+	  		this.userOrMarketMode = true;
+	  		this.renderAreas(this.commonDataService.userData);
+	  	}
+  	}
+
+  	renderAreas(data){
+  		this.disableAreaCreation();
+  		this.clearAllPolygons();
+  		var bounds = new google.maps.LatLngBounds({lat: this.userLocation.coords.latitude, lng: this.userLocation.coords.longitude});
+  		data.forEach(area => {
+  			var polygon = new google.maps.Polygon();
+  			polygon.setMap(this.map);
+  			var startInd = "POLYGON ((".length;
+  			var endInd = area.polygon.indexOf("))");
+  			var path = area.polygon.substr(startInd, endInd-1).split(", ").slice(0, -1).map(x => new Object({lat: parseFloat(x.split(" ")[0]), lng: parseFloat(x.split(" ")[1])}));
+  			path.forEach(pos => {
+  				bounds.extend(pos);
+  			});
+  			polygon.setPath(path);
+  			google.maps.event.addListener(polygon, 'click', () => {
+	  			if (this.userOrMarketMode){
+	  				var idx = this.selectedAreas.findIndex(x => x.id === area.id);
+	  				if (idx>=0){
+	  					polygon.setOptions({strokeWeight: 2.0, fillColor: 'black'});
+	  					this.selectedAreas.splice(idx, 1);
+	  				}
+	  				else{
+	  					polygon.setOptions({strokeWeight: 2.0, fillColor: 'green'});
+	  					this.selectedAreas.push(area);
+	  				}
+	  			}
+	  			else{
+	  				this.selectedMarketArea = area;
+	  				this.selectedMarketPolygon = polygon;
+	  				document.getElementById("openAreaDetailsPopupButton").click();
+	  			}
+			});
+  			this.renderedPolygons.push({polygon:polygon, id:area.id});
+  		});
+  		this.map.fitBounds(bounds);
+  	}
+
+  	clearAllPolygons(){
+  		this.renderedPolygons.forEach(polyg => {
+  			polyg.polygon.setMap(null);
+  		});
+  		this.selectedAreas = [];
+  		this.renderedPolygons = [];
+  	}
+
+  	clearPolygon(id){
+  		var idx = this.renderedPolygons.findIndex(polyg => polyg.id===id);
+  		if (idx>=0){
+  			this.renderedPolygons[idx].polygon.setMap(null);
+  			this.renderedPolygons.splice(idx, 1);
+  		}
+  	}
+
+  	deleteSelectedAreas(){
+  		this.selectedAreas.forEach(area => {
+  			this.commonDataService.deleteUserData(area.id);
+  			this.clearPolygon(area.id);
+  		});
+  		this.selectedAreas = [];
   	}
 
   	drawPolygon() {
@@ -113,85 +201,15 @@ export class HomeComponent {
   				username: this.commonDataService.userProfile.rowKey,
   				id: uuid(),
   				areaName: this.areaName,
-  				polygon: "POLYGON((" + this.polygon.map(x => x.lat() + " " + x.lng()).join(",") + "))"
+  				polygon: "POLYGON ((" + this.polygon.map(x => x.lat() + " " + x.lng()).join(", ") + "))"
   			};
   			this.commonDataService.addUserData(data);
-  		}
-  	}
-
-  	renderMarketAreas(){
-  		if (this.userLocation){
-  			this.userOrMarketMode = false;
-  			var centre = 'POINT(' + this.userLocation.coords.latitude + " " + this.userLocation.coords.longitude + ')';
-  			var radius = 10000000;
-  			this.commonDataService.rangeQuery({centre: centre, radius: radius});
-  			this.allSubscriptions.push(this.commonDataService.rangeQuerySuccessEvent.subscribe(res => {
+  			this.allSubscriptions.push(this.commonDataService.dataSaveSuccessEvent.subscribe(res => {
   				if (res.status){
-  					console.log(this.commonDataService.userProfile);
-  					this.renderAreas(this.commonDataService.rangeQueryData.filter(x => x.username !== this.commonDataService.userProfile.rowKey));
+  					document.getElementById("saveAreaModalCloseButton").click();
   				}
   			}));
-  		} 
-  	}
-
-  	renderUserAreas(){
-  		this.userOrMarketMode = true;
-  		this.renderAreas(this.commonDataService.userData);
-  	}
-
-  	renderAreas(data){
-  		this.clearAllPolygons();
-  		var bounds = new google.maps.LatLngBounds();
-  		data.forEach(area => {
-  			var polygon = new google.maps.Polygon();
-  			polygon.setMap(this.map);
-  			var startInd = "POLYGON ((".length;
-  			var endInd = area.polygon.indexOf("))");
-  			var path = area.polygon.substr(startInd, endInd-1).split(", ").slice(0, -1).map(x => new Object({lat: parseFloat(x.split(" ")[0]), lng: parseFloat(x.split(" ")[1])}));
-  			path.forEach(pos => {
-  				bounds.extend(pos);
-  			});
-  			polygon.setPath(path);
-  			google.maps.event.addListener(polygon, 'click', () => {
-	  			if (this.userOrMarketMode){
-	  				var idx = this.selectedAreas.findIndex(x => x.id === area.id);
-	  				if (idx>=0){
-	  					polygon.setOptions({strokeWeight: 2.0, fillColor: 'black'});
-	  					this.selectedAreas.splice(idx, 1);
-	  				}
-	  				else{
-	  					polygon.setOptions({strokeWeight: 2.0, fillColor: 'green'});
-	  					this.selectedAreas.push(area);
-	  				}
-	  			}
-			});
-  			this.renderedPolygons.push({polygon:polygon, id:area.id});
-  		});
-  		this.map.fitBounds(bounds);
-  	}
-
-  	clearAllPolygons(){
-  		this.renderedPolygons.forEach(polyg => {
-  			polyg.polygon.setMap(null);
-  		});
-  		this.selectedAreas = [];
-  		this.renderedPolygons = [];
-  	}
-
-  	clearPolygon(id){
-  		var idx = this.renderedPolygons.findIndex(polyg => polyg.id===id);
-  		if (idx>=0){
-  			this.renderedPolygons[idx].polygon.setMap(null);
-  			this.renderedPolygons.splice(idx, 1);
   		}
-  	}
-
-  	deleteSelectedAreas(){
-  		this.selectedAreas.forEach(area => {
-  			this.commonDataService.deleteUserData(area.id);
-  			this.clearPolygon(area.id);
-  		});
-  		this.selectedAreas = [];
   	}
 
   	enableNewAreaCreation(){
@@ -200,13 +218,19 @@ export class HomeComponent {
   		this.drawPolygon();
   	}
 
+  	disableAreaCreation(){
+  		this.newAreaCreation = false;
+  		if (this.drawingManager)
+  			this.drawingManager.setMap(null);
+  	}
+
   	//Extra functions
   	placeMarker(location){
   		//let location = new google.maps.LatLng(event.latLng.lat(), event.latLng.lng());
-  		var marker = new google.maps.Marker({
+  		this.userLocationMarker = new google.maps.Marker({
   			position: location,
   			map: this.map,
-  			title: 'wow'
+  			title: 'You are Here!'
   		});
   	}
 

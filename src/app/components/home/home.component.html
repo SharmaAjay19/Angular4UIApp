@@ -4,12 +4,12 @@
       <!-- Modal content-->
       <div class="modal-content">
         <div class="modal-header">
-          <h4 style="color:red;"><span class="glyphicon glyphicon-lock"></span>Save Area</h4>
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 style="color:red;"><span class="glyphicon glyphicon-lock"></span>Save Property</h4>
+          <button type="button" class="close" id="saveAreaModalCloseButton" data-dismiss="modal">&times;</button>
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label for="areaname"><span class="glyphicon glyphicon-user"></span>Area Name</label>
+            <label for="areaname"><span class="glyphicon glyphicon-user"></span>Property Name</label>
             <input type="text" [(ngModel)]="areaName" id="areaname" placeholder="Enter Area Name">
           </div>
           <button type="button" class="btn btn-default btn-success btn-block" (click)="saveArea()">
@@ -19,22 +19,40 @@
       </div>
     </div>
 </div>
+
+<button type="button" id="openAreaDetailsPopupButton" class="btn btn-info btn-lg" data-toggle="modal" hidden data-target="#showAreaDetailsModal">Open Popup</button>
+<div class="modal fade" id="showAreaDetailsModal" role="dialog">
+    <div class="modal-dialog">
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 style="color:red;"><span class="glyphicon glyphicon-lock"></span>View Property</h4>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <div *ngIf="selectedMarketArea" class="modal-body">
+          <b>Property Name:</b> {{selectedMarketArea.areaName}}<br>
+          <b>Area (sq. meters):</b> {{getArea(selectedMarketPolygon)}}<br>
+        </div>
+      </div>
+    </div>
+</div>
+
 <title>{{title}}</title>
 <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
 
   <!-- Links -->
   <ul class="navbar-nav">
     <li class="nav-item">
-      <a class="nav-link" (click)="enableNewAreaCreation()">New Area</a>
+      <a class="nav-link" (click)="enableNewAreaCreation()">New Property</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" (click)="renderUserAreas()">My Areas</a>
+      <a class="nav-link" (click)="renderUserAreas()">My Properties</a>
     </li>
     <li class="nav-item">
       <a class="nav-link" (click)="renderMarketAreas()">Market</a>
     </li>
     <li class="nav-item">
-      <button type="button" class="btn btn-default btn-sm" [disabled]="!userOrMarketMode" (click)="deleteSelectedAreas()">
+      <button type="button" class="btn btn-default btn-sm" [disabled]="!userOrMarketMode || selectedAreas.length===0" (click)="deleteSelectedAreas()">
         <span class="glyphicon glyphicon-trash"></span>Delete
       </button>
     </li>
@@ -45,9 +63,6 @@
 
 </nav>
 <div>
-  <div *ngIf="selectedArea" style="display:block;width:100%">
-    <p style="align-content: center">{{selectedArea?.areaName}}</p>
-  </div>
   <div style="display:inline;width:80%" #gmap style="height:550px">  
   </div>
 </div>

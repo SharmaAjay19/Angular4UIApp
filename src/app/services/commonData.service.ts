@@ -91,7 +91,7 @@ export class CommonDataService {
 		var url = this.serviceUrls.FetchUserDataUrl + "/" + this.userProfile.rowKey;
 		this._http.get(url, this.buildHeaders()).subscribe((res: Response) => {
 			this.showLoaderEvent.emit(false);
-			this.userData = res.json();
+			this.userData = res.json()? res.json(): [];
 			this.dataFetchSuccessEvent.emit({status: true});
 		},
 		(err) => {
@@ -108,6 +108,7 @@ export class CommonDataService {
 		this._http.post(url, data, this.buildHeaders()).subscribe((res: Response) => {
 			this.showLoaderEvent.emit(false);
 			this.userData.push(data);
+			console.log(this.userData);
 			this.dataSaveSuccessEvent.emit({status: true});
 		},
 		(err) => {
